@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { getSession, onAuthChange, signIn, signUp, signOut, isTeacher, listResults, deleteAllResults } from '../api.js'
+import { getSession, onAuthChange, signIn, signUp, signOut, isTeacher, listResults, deleteAllResults, getSubmissionDetail } from '../api.js'
+import { questions } from '../questions.js'
+
+const TYPE_LABELS = { mcq: 'Çoktan seçmeli', tf: 'Doğru / Yanlış', match: 'Eşleştirme', short: 'Kısa cevap' }
 
 function toCsv(rows) {
   const head = ['Ad Soyad', 'Okul No', 'Sınıf', 'Doğru', 'Toplam', 'Puan', 'Tarih']
@@ -107,9 +110,59 @@ function AuthForm() {
   )
 }
 
+function Detail({ student, onBack }) {
+  const [items, setItems] = useState(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    getSubmissionDetail(student.id).then(setItems).catch((e) => setError(e.message))
+  }, [student.id])
+
+  const byId = Object.fromEntries((items || []).map((i) => [i.question_id, i]))
+
+  return (
+    <div className="card">
+      <div className="actions no-print">
+        <button className="btn small" onClick={onBack}>← Listeye dön</button>
+        <button className="btn small" onClick={() => window.print()}>Yazdır</button>
+      </div>
+      <h2>{student.fullName}</h2>
+      <p>
+        {student.className} · No: {student.studentNo} · <strong>{student.correct}/{student.total} doğru, {student.score} puan</strong>
+      </p>
+      <p className="hint">{new Date(student.submittedAt).toLocaleString('tr-TR')}</p>
+      {error && <p className="error">{error}</p>}
+      {!items && !error && <p>Yükleniyor…</p>}
+
+      {items && questions.map((q) => {
+        const it = byId[q.id]
+        if (!it) return null
+        const empty = it.given == null || String(it.given).trim() === ''
+        return (
+          <div key={q.id} className={'dq ' + (it.correct ? 'ok' : 'bad')}>
+            <div className="dq-head">
+              <span className="qnum">{q.id}</span>
+              <span className="dq-type">{TYPE_LABELS[q.type]}</span>
+              <span className="dq-mark">{it.correct ? '✓ Doğru' : '✗ Yanlış'}</span>
+            </div>
+            <p className="dq-text">
+              {q.type === 'match' ? <><em>{q.groupTitle}</em> {q.text}</> : q.text}
+            </p>
+            <p><span className="dq-label">Öğrencinin yanıtı:</span>{' '}
+              {empty ? <em>Boş bırakmış</em> : <strong>{it.given}</strong>}
+            </p>
+            {!it.correct && <p><span className="dq-label">Doğru yanıt:</span> {it.expected}</p>}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function Results({ email }) {
   const [rows, setRows] = useState([])
   const [error, setError] = useState('')
+  const [open, setOpen] = useState(null)
 
   async function load() {
     try {
@@ -138,6 +191,8 @@ function Results({ email }) {
 
   const avg = rows.length ? Math.round(rows.reduce((s, r) => s + r.score, 0) / rows.length) : 0
 
+  if (open) return <Detail student={open} onBack={() => setOpen(null)} />
+
   return (
     <div className="card">
       <p className="hint">Giriş yapan: {email}</p>
@@ -157,7 +212,10 @@ function Results({ email }) {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
-                <td>{r.fullName}</td><td>{r.studentNo}</td><td>{r.className}</td>
+                <td>
+                  <button className="folder" title="Cevapları göster" aria-label={`${r.fullName} cevaplarını göster`} onClick={() => setOpen(r)}>📁</button>
+                  {r.fullName}
+                </td><td>{r.studentNo}</td><td>{r.className}</td>
                 <td>{r.correct}/{r.total}</td><td><strong>{r.score}</strong></td>
                 <td>{new Date(r.submittedAt).toLocaleString('tr-TR')}</td>
               </tr>

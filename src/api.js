@@ -97,6 +97,13 @@ export async function listResults() {
   }))
 }
 
+// Bir öğrencinin soru soru dökümü: [{ question_id, given, expected, correct }]
+export async function getSubmissionDetail(id) {
+  const { data, error } = await need().rpc('teacher_submission_detail', { p_id: id })
+  if (error) throw new Error('Döküm alınamadı.')
+  return data
+}
+
 export async function deleteAllResults() {
   const { error } = await need().from('submissions').delete().not('id', 'is', null)
   if (error) throw new Error('Silinemedi.')

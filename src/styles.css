@@ -110,3 +110,22 @@ th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: le
 @media (max-width: 480px) {
   .choices.row { grid-template-columns: 1fr; }
 }
+
+.folder { background: none; border: 0; font-size: 1.3rem; cursor: pointer; padding: 0 8px 0 0; vertical-align: middle; }
+.folder:hover { transform: scale(1.2); }
+.dq { border: 1px solid var(--line); border-left-width: 6px; border-radius: 10px; padding: 10px 14px; margin: 10px 0; }
+.dq.ok { border-left-color: var(--ok); }
+.dq.bad { border-left-color: var(--err); }
+.dq p { margin: 6px 0; }
+.dq-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dq-type { color: var(--muted); font-size: 0.85rem; }
+.dq-mark { margin-left: auto; font-weight: 700; }
+.dq.ok .dq-mark { color: var(--ok); }
+.dq.bad .dq-mark { color: var(--err); }
+.dq-label { color: var(--muted); }
+@media print {
+  .no-print, .top .sub { display: none; }
+  body { background: #fff; color: #000; font-size: 14px; }
+  .card { border: 0; padding: 0; }
+  .dq { break-inside: avoid; }
+}

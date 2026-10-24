@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { hasAlreadyTaken } from '../api.js'
 
 // Sınıf listesi. Okulunuzdaki şubelere göre değiştirebilirsiniz.
-const CLASSES = ['5-A', '5-B', '5-C', '5-D', '5-E', '5-F', '5-G', '5-H']
+const CLASSES = ['5-A', '5-B', '5-C', '5-D', '5-E', '5-F']
 
 export default function StudentForm({ onStart }) {
   const [fullName, setFullName] = useState('')
